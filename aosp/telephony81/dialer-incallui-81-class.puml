@@ -1,0 +1,218 @@
+@startuml
+/'=======================InCallServiceImpl start'/
+InCallService .. Telecom_Phone
+InCallService <|.. InCallServiceImpl
+InCallServiceImpl .. InCallPresenter
+InCallServiceImpl .. TelecomAdapter
+
+abstract class InCallService
+class InCallServiceImpl{
+    onCallAdded()
+    onCallRemoved()
+}
+class TelecomAdapter{
+    mute()
+    setAudioRoute()
+}
+/'=========================InCallServiceImpl end'/
+
+/'=======================InCallPresenter start'/
+InCallPresenter +.. InCallState
+/'InCallPresenter +.. InCallStateListener
+InCallPresenter +.. IncomingCallListener
+InCallPresenter +.. CanAddCallListener
+InCallPresenter +.. InCallDetailsListener
+InCallPresenter +.. InCallOrientationListener
+InCallPresenter +.. InCallEventListener
+InCallPresenter +.. InCallUiListener'/
+
+InCallPresenter -- CallList
+InCallPresenter .. ContactInfoCache
+ContactInfoCache +-- ContactInfoCacheCallback
+/'InCallPresenter .. ProximitySensor
+InCallPresenter .. FilteredNumberAsyncQueryHandler'/
+InCallPresenter .. StatusBarNotifier
+
+enum InCallState{
+NO_CALLS
+    INCOMING
+    INCALL
+    WAITING_FOR_ACCOUNT
+    PENDING_OUTGOING
+    OUTGOING
+}
+class ContactInfoCache {
+    findInfo()
+    onImageLoaded()
+}
+class InCallPresenter{
+    setActivity()
+    unsetActivity()
+    getInCallState()
+    getCallList()
+    ...()
+}
+class StatusBarNotifier{
+    updateNotification()
+}
+/'interface InCallStateListener{
+    onStateChange()
+}
+interface IncomingCallListener{
+    onIncomingCall()
+}
+interface CanAddCallListener{
+    onCanAddCallChanged()
+}
+interface InCallDetailsListener{
+    onDetailsChanged()
+}
+interface InCallOrientationListener{
+    onDeviceOrientationChanged()
+}
+interface InCallEventListener{
+    onFullscreenModeChanged()
+}
+interface InCallUiListener{
+    onUiShowing()
+}'/
+interface ContactInfoCacheCallback{
+    onContactInfoComplete()
+    onImageLoadComplete()
+}
+/'=========================InCallPresenter end'/
+
+
+/'=======================CallList start'/
+Listener +-- CallList
+CallList o-- DialerCall
+
+interface Listener{
+    onIncomingCall(DialerCall call)
+    onCallListChange(CallList callList)
+}
+class CallList{
+    onCallAdded()
+    onCallRemoved()
+    getCallById()
+    getDialerCallFromTelecomCall()
+}
+/'=========================CallList end'/
+
+/'=======================DialerCall start'/
+DialerCall .. Telecomm_Call
+DialerCall -- DialerCallListener
+DialerCall +-- State
+DialerCall +-- CameraDirection
+
+class DialerCall{
+    getNumber()
+    getState()
+    isSpam()
+    isBlocked()
+    isVideoCall()
+    toString()
+}
+interface DialerCallListener
+interface CameraDirection
+class State {
+    INVALID
+    NEW
+    IDLE
+    ACTIVE
+    INCOMING
+    CALL_WAITING
+    DIALING
+    REDIALING
+    ONHOLD
+    DISCONNECTING
+    DISCONNECTED
+    CONFERENCED
+    SELECT_PHONE_ACCOUNT
+    CONNECTING
+    BLOCKED
+    PULLING
+}
+/'
+DialerCall <|.. VideoTechListener
+DialerCall <|.. StateChangedListener
+DialerCall <|.. CapabilitiesListener
+abstract class VideoTechListener{
+onVideoTechStateChanged()
+    onUpgradedToVideo(boolean switchToSpeaker)
+}
+abstract class StateChangedListener{
+    onEnrichedCallStateChanged()
+}
+abstract class CapabilitiesListener{
+    onCapabilitiesUpdated()
+}
+abstract class Callback{
+    onStateChanged(Call call, int newState)
+    onParentChanged(Call call, Call newParent)
+    onDetailsChanged(Call call, Call.Details details)
+    onChildrenChanged(Call call, List<Call> children)
+}
+'/
+/'=======================DialerCall end'/
+
+/'=======================Telecomm_Call start'/
+Telecomm_Call .. DriverCall
+Telecomm_Call +-- Callback
+interface Callback
+/'=======================Telecomm_Call end'/
+
+/'=======================IncallActivity start'/
+InCallPresenter .. IncallActivity
+IncallActivity o-- InCallActivityCommon
+IncallActivity o-- InCallFragment
+IncallActivity o-- VideoCallFragment
+IncallActivity o-- AnswerFragment
+class IncallActivity{
+    showMainInCallFragment()
+}
+/'=======================IncallActivity end'/
+
+/'=======================InCallFragment start'/
+InCallFragment .. CallCardPresenter
+/'InCallFragment .. CallButtonPresenter'/
+InCallFragment o.. ContactGridManager
+InCallFragment o.. LocationFragment
+InCallFragment o.. PrimaryInfo
+InCallFragment o.. LockableViewPager
+LockableViewPager o.. InCallPagerAdapter
+InCallPagerAdapter o.. InCallButtonGridFragment
+InCallPagerAdapter o.. MultimediaFragment
+
+class CallCardPresenter{
+    主presenter：
+    1.监听incallstate
+    2.子fragment
+}
+class LocationFragment{
+    上部分：
+}
+class LockableViewPager{
+    中部分：
+    1.按钮组合
+    2.MultimediaFragment
+}
+class CallButtonPresenter{
+    中部分：
+    1.按钮点击事件
+    2.call状态变化更新按钮
+}
+class ContactGridManager{
+    上部分：
+    1.头像
+    2.通话连接符号、连接状态
+    3.姓名|号码
+    4.各类icon|电话号码|时长
+}
+/'=======================InCallFragment end'/
+
+/'=======================InCallFragment start'/
+InCallButtonGridFragment o-- ButtonController
+ButtonController -- CallButtonPresenter
+/'=======================InCallFragment end'/
+@enduml
