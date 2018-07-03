@@ -1,0 +1,18 @@
+@startuml
+PhoneNotifiter <|-- DefaultPhoneNotifiter
+
+Phone <|-- GsmCdmaPhone
+Phone <|-- ImsPhone
+Phone <|-- SipPhone
+CallTracker <|-- GsmCdmaCallTracker
+
+Application .. TelephonyRegistry
+TelephonyRegistry .. DefaultPhoneNotifiter
+DefaultPhoneNotifiter .. GsmCdmaPhone
+GsmCdmaPhone .. GsmCdmaCallTracker
+GsmCdmaCallTracker .. RILJ
+
+TelephonyManager .. PhoneInterfaceManager
+TelephonyManager .. TelephonyRegistry
+TelephonyManager ..TelecomService
+@enduml
